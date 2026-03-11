@@ -2070,6 +2070,11 @@
                 let dimmed = false;
                 let zoneTag = '';
 
+                // Staff filter - dim non-matching staff
+                if (activeStaffFilter && shift.staff !== activeStaffFilter) {
+                    dimmed = true;
+                }
+
                 if (activeZoneFilter) {
                     if (shift.zone === activeZoneFilter) {
                         bgColor = zoneData[shift.zone].color;
@@ -2327,13 +2332,15 @@
         function applyStaffFilter() {
             const staffName = document.getElementById('staff-filter').value;
             activeStaffFilter = staffName || null;
-            activeDayFilter = null;
-            document.getElementById('day-filter').value = '';
             updateActiveFiltersDisplay();
-            if (activeStaffFilter) {
-                showStaffFilterView(activeStaffFilter);
+            // Re-render current view with filter applied
+            if (activeDayFilter) {
+                renderDayExpandedView(activeDayFilter);
+            } else if (currentView === 'overview') {
+                renderWeekOverview();
             } else {
-                showTimelineView();
+                renderTimeline();
+                setupDragAndDrop();
             }
         }
 
@@ -2417,7 +2424,15 @@
             activeStaffFilter = null;
             document.getElementById('staff-filter').value = '';
             updateActiveFiltersDisplay();
-            showTimelineView();
+            // Re-render current view
+            if (activeDayFilter) {
+                renderDayExpandedView(activeDayFilter);
+            } else if (currentView === 'overview') {
+                renderWeekOverview();
+            } else {
+                renderTimeline();
+                setupDragAndDrop();
+            }
         }
 
         function clearDayFilter() {
@@ -2621,6 +2636,11 @@
                         let bgColor = staff.color;
                         let zoneLabel = '';
                         let dimmed = false;
+
+                        // Staff filter - dim non-matching staff
+                        if (activeStaffFilter && shift.staff !== activeStaffFilter) {
+                            dimmed = true;
+                        }
 
                         if (activeZoneFilter) {
                             if (shift.zone === activeZoneFilter) {
@@ -2850,6 +2870,11 @@
                 let bgColor = staff.color;
                 let zoneLabel = '';
                 let dimmed = false;
+
+                // Staff filter - dim non-matching staff
+                if (activeStaffFilter && shift.staff !== activeStaffFilter) {
+                    dimmed = true;
+                }
 
                 if (activeZoneFilter) {
                     if (shift.zone === activeZoneFilter) {
