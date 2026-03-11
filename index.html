@@ -130,7 +130,7 @@
 
         /* Main App */
         #main-app {
-            display: none;
+            display: block;
             padding: 1.5rem;
             max-width: 1800px;
             margin: 0 auto;
@@ -1533,17 +1533,6 @@
     </style>
 </head>
 <body>
-    <!-- Password Gate -->
-    <div id="password-gate">
-        <div class="password-container">
-            <h1>CG Roster Tracker</h1>
-            <p>Enter password to access the roster</p>
-            <div class="password-input-group" id="password-group">
-                <input type="password" id="password-input" placeholder="Password" autofocus>
-            </div>
-            <button class="password-btn" onclick="checkPassword()">Enter</button>
-        </div>
-    </div>
 
     <!-- Main App -->
     <div id="main-app">
@@ -1693,27 +1682,8 @@
     </div>
 
     <script>
-        // Password
-        const CORRECT_PASSWORD = 'haobaobao';
-
-        function checkPassword() {
-            const input = document.getElementById('password-input');
-            const group = document.getElementById('password-group');
-
-            if (input.value === CORRECT_PASSWORD) {
-                document.getElementById('password-gate').style.display = 'none';
-                document.getElementById('main-app').style.display = 'block';
-                initializeApp();
-            } else {
-                group.classList.add('error');
-                input.value = '';
-                setTimeout(() => group.classList.remove('error'), 500);
-            }
-        }
-
-        document.getElementById('password-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkPassword();
-        });
+        // Initialize app on page load
+        document.addEventListener('DOMContentLoaded', initializeApp);
 
         // Timeline settings
         const START_HOUR = 8;
