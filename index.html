@@ -324,98 +324,153 @@
             display: block;
         }
 
-        .week-overview-container {
+        .week-row {
             background: var(--bg-card);
             border-radius: 12px;
             border: 1px solid var(--border);
-            overflow-x: auto;
+            margin-bottom: 1rem;
+            overflow: hidden;
         }
 
-        .week-overview-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 900px;
-        }
-
-        .week-overview-table th,
-        .week-overview-table td {
-            border: 1px solid var(--border);
-            padding: 0.4rem;
-            text-align: center;
-            vertical-align: top;
-        }
-
-        .week-overview-table th {
+        .week-row-title {
             background: var(--bg-dark);
-            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
             font-weight: 600;
-            padding: 0.6rem 0.3rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
         }
 
-        .week-overview-table th.weekend {
-            background: rgba(123, 31, 162, 0.15);
+        .week-grid {
+            display: grid;
+            grid-template-columns: 50px repeat(7, 1fr);
         }
 
-        .week-overview-table th.holiday {
-            background: rgba(194, 24, 91, 0.15);
+        .week-grid-header {
+            display: contents;
         }
 
-        .week-overview-table th .day-num {
-            font-size: 1rem;
-            display: block;
+        .week-header-cell {
+            padding: 0.5rem 0.25rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            font-size: 0.75rem;
         }
 
-        .week-overview-table th .day-label {
+        .week-header-cell:last-child {
+            border-right: none;
+        }
+
+        .week-header-cell.time-col {
+            background: var(--bg-dark);
+        }
+
+        .week-header-cell.weekend {
+            background: rgba(123, 31, 162, 0.1);
+        }
+
+        .week-header-cell.holiday {
+            background: rgba(194, 24, 91, 0.1);
+        }
+
+        .week-header-cell .day-num {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .week-header-cell .day-name {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .week-header-cell .day-label {
+            font-size: 0.55rem;
+            color: var(--primary);
+        }
+
+        .week-grid-body {
+            display: contents;
+        }
+
+        .week-time-column {
+            background: var(--bg-dark);
+            border-right: 1px solid var(--border);
+        }
+
+        .week-time-slot {
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 0.6rem;
             color: var(--text-secondary);
-            font-weight: normal;
+            border-bottom: 1px solid var(--border);
         }
 
-        .week-overview-table td {
-            min-width: 60px;
-            height: auto;
-            padding: 0.25rem;
-        }
-
-        .week-overview-table td.weekend {
-            background: rgba(123, 31, 162, 0.05);
-        }
-
-        .week-overview-table td.holiday {
-            background: rgba(194, 24, 91, 0.05);
-        }
-
-        .week-overview-table .time-cell {
-            background: var(--bg-dark);
-            font-size: 0.7rem;
+        .week-time-slot.hour {
             font-weight: 600;
-            width: 50px;
-            min-width: 50px;
+            color: var(--text-primary);
         }
 
-        /* Compact Shift Block */
+        .week-day-column {
+            position: relative;
+            border-right: 1px solid var(--border);
+            min-height: 300px;
+        }
+
+        .week-day-column:last-child {
+            border-right: none;
+        }
+
+        .week-day-column.weekend {
+            background: rgba(123, 31, 162, 0.03);
+        }
+
+        .week-day-column.holiday {
+            background: rgba(194, 24, 91, 0.03);
+        }
+
+        .week-grid-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Compact Shift Block for Week Overview */
         .compact-shift {
-            display: inline-block;
-            padding: 2px 5px;
-            margin: 1px;
-            border-radius: 4px;
-            font-size: 0.65rem;
+            position: absolute;
+            border-radius: 3px;
+            padding: 2px 4px;
+            font-size: 0.6rem;
             font-weight: 500;
             color: white;
             cursor: pointer;
-            position: relative;
+            overflow: hidden;
             white-space: nowrap;
+            text-overflow: ellipsis;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .compact-shift:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             z-index: 100;
         }
 
         .compact-shift.dimmed {
             opacity: 0.3;
+        }
+
+        .compact-shift .shift-zone-tag {
+            font-size: 0.5rem;
+            opacity: 0.9;
+            display: block;
+            margin-top: 1px;
         }
 
         /* Tooltip */
@@ -1558,10 +1613,7 @@
 
         <!-- Week Overview View -->
         <div class="week-overview" id="week-overview">
-            <div class="week-overview-container">
-                <table class="week-overview-table" id="week-overview-table">
-                </table>
-            </div>
+            <div id="week-overview-content"></div>
         </div>
 
         <!-- Normal Timeline View -->
@@ -1879,87 +1931,140 @@
         }
 
         // Week Overview Rendering
+        const WEEK_HOUR_HEIGHT = 25; // Height per hour in week view
+
         function renderWeekOverview() {
-            const table = document.getElementById('week-overview-table');
-            const hours = [];
-            for (let h = START_HOUR; h < END_HOUR; h++) {
-                hours.push(h);
-            }
+            const container = document.getElementById('week-overview-content');
+            const totalHours = END_HOUR - START_HOUR;
 
-            let html = '<thead><tr><th class="time-cell">Time</th>';
-            allDays.forEach(day => {
-                const typeClass = day.type === 'holiday' ? 'holiday' : (day.type === 'weekend' ? 'weekend' : '');
-                html += `<th class="${typeClass}">
-                    <span class="day-num">${day.date}</span>
-                    ${day.day}<br>
-                    <span class="day-label">${day.label || ''}</span>
-                </th>`;
-            });
-            html += '</tr></thead><tbody>';
+            // Define weeks
+            const weekGroups = [
+                { title: 'Week 1 - Easter Week (Apr 1-5)', days: weeks[1].filter(d => d !== null) },
+                { title: 'Week 2 (Apr 6-12)', days: weeks[2] },
+                { title: 'Week 3 (Apr 13-14)', days: weeks[3] }
+            ];
 
-            hours.forEach(hour => {
-                const h12 = hour % 12 || 12;
-                const ampm = hour >= 12 ? 'pm' : 'am';
-                html += `<tr><td class="time-cell">${h12}${ampm}</td>`;
+            let html = '';
 
-                allDays.forEach(day => {
-                    const typeClass = day.type === 'holiday' ? 'holiday' : (day.type === 'weekend' ? 'weekend' : '');
-                    const shifts = getShiftsAtHour(day.date, hour);
-                    html += `<td class="${typeClass}">`;
-                    shifts.forEach(shift => {
-                        const staff = staffData[shift.staff] || { color: '#e91e63' };
-                        let bgColor = staff.color;
-                        let dimmed = false;
+            weekGroups.forEach(week => {
+                if (week.days.length === 0) return;
 
-                        if (activeZoneFilter) {
-                            if (shift.zone === activeZoneFilter) {
-                                bgColor = zoneData[shift.zone].color;
-                            } else if (shift.zone) {
-                                bgColor = zoneData[shift.zone].color;
-                                dimmed = true;
-                            } else {
-                                dimmed = true;
-                            }
-                        } else if (shift.zone) {
-                            bgColor = zoneData[shift.zone].color;
-                        }
-
-                        const zoneShort = shift.zone ? zoneData[shift.zone].short : '';
-                        const hours = calculateHours(shift.start, shift.end);
-                        const pay = calculateShiftPay(shift, day.date);
-
-                        html += `<span class="compact-shift ${dimmed ? 'dimmed' : ''}"
-                            style="background: ${bgColor};"
-                            data-name="${shift.staff}"
-                            data-time="${formatTime(shift.start)} - ${formatTime(shift.end)}"
-                            data-zone="${shift.zone || ''}"
-                            data-zone-color="${shift.zone ? zoneData[shift.zone].color : ''}"
-                            data-hours="${hours.toFixed(1)}"
-                            data-pay="${pay.toFixed(2)}"
-                            onmouseenter="showTooltip(event, this)"
-                            onmouseleave="hideTooltip()"
-                            onmousemove="moveTooltip(event)"
-                            ondblclick="openEditShiftModal(${day.date}, ${shift.originalIndex})"
-                        >${shift.staff.split(' ')[0]}${zoneShort ? ' <small>' + zoneShort + '</small>' : ''}</span>`;
-                    });
-                    html += '</td>';
-                });
-                html += '</tr>';
+                html += `<div class="week-row">
+                    <div class="week-row-title">${week.title}</div>
+                    <div class="week-grid" style="grid-template-columns: 50px repeat(${week.days.length}, 1fr);">
+                        <div class="week-grid-header">
+                            <div class="week-header-cell time-col">Time</div>
+                            ${week.days.map(day => {
+                                const typeClass = day.type === 'holiday' ? 'holiday' : (day.type === 'weekend' ? 'weekend' : '');
+                                return `<div class="week-header-cell ${typeClass}">
+                                    <div class="day-num">${day.date}</div>
+                                    <div class="day-name">${day.day}</div>
+                                    <div class="day-label">${day.label || ''}</div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                        <div class="week-grid-body">
+                            <div class="week-time-column">
+                                ${Array.from({length: totalHours}, (_, i) => {
+                                    const hour = START_HOUR + i;
+                                    const h12 = hour % 12 || 12;
+                                    const ampm = hour >= 12 ? 'pm' : 'am';
+                                    return `<div class="week-time-slot hour" style="height: ${WEEK_HOUR_HEIGHT}px;">${h12}${ampm}</div>`;
+                                }).join('')}
+                            </div>
+                            ${week.days.map(day => {
+                                const typeClass = day.type === 'holiday' ? 'holiday' : (day.type === 'weekend' ? 'weekend' : '');
+                                return `<div class="week-day-column ${typeClass}" style="height: ${totalHours * WEEK_HOUR_HEIGHT}px;">
+                                    ${renderWeekGridLines(totalHours)}
+                                    ${renderWeekShifts(day.date)}
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>`;
             });
 
-            html += '</tbody>';
-            table.innerHTML = html;
+            container.innerHTML = html;
         }
 
-        function getShiftsAtHour(date, hour) {
+        function renderWeekGridLines(totalHours) {
+            let html = '';
+            for (let i = 1; i < totalHours; i++) {
+                html += `<div class="week-grid-line" style="top: ${i * WEEK_HOUR_HEIGHT}px;"></div>`;
+            }
+            return html;
+        }
+
+        function renderWeekShifts(date) {
             const shifts = rosterData[date] || [];
-            return shifts.map((s, i) => ({...s, originalIndex: i})).filter(shift => {
-                const startHour = parseInt(shift.start.split(':')[0]);
-                const endHour = parseInt(shift.end.split(':')[0]);
-                const endMin = parseInt(shift.end.split(':')[1]);
-                const effectiveEnd = endMin > 0 ? endHour + 1 : endHour;
-                return hour >= startHour && hour < effectiveEnd;
+            if (shifts.length === 0) return '';
+
+            // Calculate overlap columns like in daily view
+            const sortedShifts = shifts.map((s, i) => ({...s, originalIndex: i}))
+                .sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+
+            const columns = [];
+            sortedShifts.forEach(shift => {
+                const shiftStart = timeToMinutes(shift.start);
+                const shiftEnd = timeToMinutes(shift.end);
+                let col = 0;
+                while (columns[col] && columns[col] > shiftStart) {
+                    col++;
+                }
+                shift.column = col;
+                columns[col] = shiftEnd;
             });
+
+            const maxColumns = Math.max(...sortedShifts.map(s => s.column)) + 1;
+            const colWidth = 96 / maxColumns;
+
+            return sortedShifts.map(shift => {
+                const staff = staffData[shift.staff] || { color: '#e91e63' };
+                const startMinutes = timeToMinutes(shift.start);
+                const endMinutes = timeToMinutes(shift.end);
+                const top = ((startMinutes - START_HOUR * 60) / 60) * WEEK_HOUR_HEIGHT;
+                const height = ((endMinutes - startMinutes) / 60) * WEEK_HOUR_HEIGHT;
+                const left = 2 + (shift.column * colWidth);
+                const width = colWidth - 2;
+
+                let bgColor = staff.color;
+                let dimmed = false;
+                let zoneTag = '';
+
+                if (activeZoneFilter) {
+                    if (shift.zone === activeZoneFilter) {
+                        bgColor = zoneData[shift.zone].color;
+                    } else if (shift.zone) {
+                        bgColor = zoneData[shift.zone].color;
+                        dimmed = true;
+                    } else {
+                        dimmed = true;
+                    }
+                } else if (shift.zone) {
+                    bgColor = zoneData[shift.zone].color;
+                }
+
+                if (shift.zone) {
+                    zoneTag = `<span class="shift-zone-tag">${zoneData[shift.zone].short}</span>`;
+                }
+
+                const shiftHours = calculateHours(shift.start, shift.end);
+                const pay = calculateShiftPay(shift, date);
+
+                return `<div class="compact-shift ${dimmed ? 'dimmed' : ''}"
+                    style="top: ${top}px; height: ${height}px; left: ${left}%; width: ${width}%; background: ${bgColor};"
+                    data-name="${shift.staff}"
+                    data-time="${formatTime(shift.start)} - ${formatTime(shift.end)}"
+                    data-zone="${shift.zone || ''}"
+                    data-zone-color="${shift.zone ? zoneData[shift.zone].color : ''}"
+                    data-hours="${shiftHours.toFixed(1)}"
+                    data-pay="${pay.toFixed(2)}"
+                    onmouseenter="showTooltip(event, this)"
+                    onmouseleave="hideTooltip()"
+                    onmousemove="moveTooltip(event)"
+                    ondblclick="openEditShiftModal(${date}, ${shift.originalIndex})"
+                >${shift.staff}${zoneTag}</div>`;
+            }).join('');
         }
 
         // Tooltip functions
