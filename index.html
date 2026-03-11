@@ -1599,6 +1599,9 @@
                 <span>Public Holiday</span>
             </div>
         </div>
+        <div class="legend staff-legend" id="staff-legend">
+            <span style="font-weight: 600; margin-right: 0.5rem;">Staff:</span>
+        </div>
         <div class="legend zone-legend" id="zone-legend" style="display: none;">
             <span style="font-weight: 600; margin-right: 0.5rem;">Zones:</span>
         </div>
@@ -2280,6 +2283,15 @@
                 option.value = zone;
                 option.textContent = zone;
                 zoneSelect.appendChild(option);
+            });
+
+            // Populate staff legend
+            const staffLegend = document.getElementById('staff-legend');
+            Object.entries(staffData).forEach(([name, data]) => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `<div class="legend-dot" style="background: ${data.color};"></div><span>${name}</span>`;
+                staffLegend.appendChild(item);
             });
 
             // Populate zone legend
