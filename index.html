@@ -1,0 +1,2519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CG Roster Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Cheeky Glow Pink Palette - Light Pink Theme */
+            --primary: #e91e63;
+            --primary-dark: #c2185b;
+            --primary-light: #f8bbd9;
+            --secondary: #ff6090;
+            --accent: #fce4ec;
+            --bg-dark: #fce4ec;
+            --bg-card: #fff0f5;
+            --bg-hover: #ffdbeb;
+            --text-primary: #4a1a2c;
+            --text-secondary: #8b4a62;
+            --border: #f8bbd9;
+            --success: #2e7d32;
+            --warning: #f57c00;
+            --danger: #c62828;
+            --weekend: #7b1fa2;
+            --holiday: #c2185b;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        /* Password Gate */
+        #password-gate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 50%, #f48fb1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .password-container {
+            background: var(--bg-card);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(233, 30, 99, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid var(--border);
+        }
+
+        .password-container h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .password-container p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .password-input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .password-input-group input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .password-input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(233, 30, 99, 0.2);
+        }
+
+        .password-input-group.error input {
+            border-color: var(--danger);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .password-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .password-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(233, 30, 99, 0.4);
+        }
+
+        /* Main App */
+        #main-app {
+            display: none;
+            padding: 1.5rem;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .total-pay {
+            background: var(--bg-card);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .total-pay span {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .total-pay strong {
+            color: var(--success);
+            font-size: 1.25rem;
+            margin-left: 0.5rem;
+        }
+
+        /* Filters Section */
+        .filters-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .filter-group select {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .active-filter-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            background: var(--primary);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .active-filter-badge button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            opacity: 0.8;
+        }
+
+        .active-filter-badge button:hover {
+            opacity: 1;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .legend-dot.weekday { background: var(--primary-light); }
+        .legend-dot.weekend { background: var(--weekend); }
+        .legend-dot.holiday { background: var(--holiday); }
+
+        .coverage-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+            font-size: 0.875rem;
+        }
+
+        .coverage-bar {
+            display: flex;
+            gap: 2px;
+        }
+
+        .coverage-level {
+            width: 16px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .coverage-level.low { background: #f44336; }
+        .coverage-level.medium { background: #ff9800; }
+        .coverage-level.good { background: #4caf50; }
+        .coverage-level.high { background: #00bcd4; }
+
+        /* Staff Filter View */
+        .staff-filter-view {
+            display: none;
+            gap: 1rem;
+        }
+
+        .staff-filter-view.active {
+            display: block;
+        }
+
+        .staff-filter-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .staff-filter-header .staff-color-large {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+        }
+
+        .staff-filter-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .staff-filter-header .staff-stats {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .staff-filter-header .staff-stats .hours {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .staff-filter-header .staff-stats .pay {
+            font-size: 1.25rem;
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .both-weeks-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .week-panel {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 1rem;
+        }
+
+        .week-panel h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .staff-shifts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .staff-shift-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .staff-shift-item.weekend {
+            border-left-color: var(--weekend);
+        }
+
+        .staff-shift-item.holiday {
+            border-left-color: var(--holiday);
+        }
+
+        .staff-shift-item .day-info {
+            min-width: 80px;
+        }
+
+        .staff-shift-item .day-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .staff-shift-item .day-date {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .staff-shift-item .shift-details {
+            flex: 1;
+            margin-left: 1rem;
+        }
+
+        .staff-shift-item .shift-time {
+            font-size: 0.9rem;
+        }
+
+        .staff-shift-item .shift-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .staff-shift-item .shift-pay {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .no-shifts {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Day Expanded View */
+        .day-expanded-view {
+            display: none;
+        }
+
+        .day-expanded-view.active {
+            display: block;
+        }
+
+        .day-expanded-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .day-expanded-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .day-expanded-header .day-type-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .day-type-badge.weekday { background: var(--primary); }
+        .day-type-badge.weekend { background: var(--weekend); }
+        .day-type-badge.holiday { background: var(--holiday); }
+
+        .day-expanded-header .day-stats {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .day-expanded-container {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .expanded-time-column {
+            background: var(--bg-dark);
+        }
+
+        .expanded-time-slot {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .expanded-time-slot.hour {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .expanded-shifts-column {
+            position: relative;
+            border-left: 1px solid var(--border);
+        }
+
+        .expanded-grid-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border);
+            pointer-events: none;
+        }
+
+        .expanded-shift-block {
+            position: absolute;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            border: 2px solid rgba(255,255,255,0.25);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+        }
+
+        .expanded-shift-block:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            z-index: 100;
+        }
+
+        .expanded-shift-block.dimmed {
+            opacity: 0.3;
+        }
+
+        .expanded-shift-block .shift-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .expanded-shift-block .shift-time {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        .expanded-shift-block .shift-pay {
+            font-size: 0.7rem;
+            opacity: 0.85;
+            margin-top: auto;
+        }
+
+
+        /* Day Navigation */
+        .day-navigation {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.25rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+        }
+
+        .nav-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .nav-info {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .nav-info strong {
+            color: var(--primary);
+        }
+
+        /* Timeline Grid */
+        .timeline-container {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .timeline-view {
+            display: block;
+        }
+
+        .timeline-view.hidden {
+            display: none;
+        }
+
+        .timeline-header {
+            display: grid;
+            grid-template-columns: 60px repeat(3, 1fr);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            z-index: 10;
+        }
+
+        .timeline-header-cell {
+            padding: 1rem 0.5rem;
+            text-align: center;
+            border-right: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .timeline-header-cell:hover:not(.time-col) {
+            background: var(--bg-hover);
+        }
+
+        .timeline-header-cell:last-child {
+            border-right: none;
+        }
+
+        .timeline-header-cell.time-col {
+            background: var(--bg-dark);
+            cursor: default;
+        }
+
+        .timeline-header-cell.weekend {
+            background: rgba(156, 39, 176, 0.15);
+        }
+
+        .timeline-header-cell.holiday {
+            background: rgba(233, 30, 99, 0.15);
+        }
+
+        .day-name {
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .day-date {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+        }
+
+        .day-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .timeline-header-cell.weekend .day-label { color: var(--weekend); }
+        .timeline-header-cell.holiday .day-label { color: var(--holiday); }
+
+        .timeline-body {
+            display: grid;
+            grid-template-columns: 60px repeat(3, 1fr);
+            position: relative;
+        }
+
+        .time-column {
+            background: var(--bg-dark);
+            border-right: 1px solid var(--border);
+        }
+
+        .time-slot {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .time-slot.hour {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .day-column {
+            position: relative;
+            border-right: 1px solid var(--border);
+            min-height: 480px;
+        }
+
+        .day-column:last-child {
+            border-right: none;
+        }
+
+        .day-column.weekend {
+            background: rgba(156, 39, 176, 0.05);
+        }
+
+        .day-column.holiday {
+            background: rgba(233, 30, 99, 0.05);
+        }
+
+        .time-grid-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border);
+            pointer-events: none;
+        }
+
+        /* Shift Blocks - Full width overlapping */
+        .shift-block {
+            position: absolute;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: move;
+            user-select: none;
+            overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .shift-block.dimmed {
+            opacity: 0.25;
+        }
+
+        .shift-block.highlighted {
+            box-shadow: 0 0 0 2px white, 0 4px 15px rgba(0, 0, 0, 0.4);
+            z-index: 50;
+        }
+
+        .shift-block:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            z-index: 100;
+        }
+
+        .shift-block.dragging {
+            opacity: 0.9;
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .shift-name {
+            font-weight: 600;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .shift-time {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            white-space: nowrap;
+        }
+
+        .shift-pay {
+            font-size: 0.65rem;
+            opacity: 0.85;
+            margin-top: auto;
+        }
+
+        .zone-badge {
+            font-size: 0.6rem;
+            background: rgba(255,255,255,0.3);
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 2px;
+        }
+
+        .shift-delete {
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            font-size: 9px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shift-block:hover .shift-delete {
+            opacity: 1;
+        }
+
+        .shift-delete:hover {
+            background: var(--danger);
+        }
+
+        .resize-handle {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            cursor: ns-resize;
+            background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.2) 100%);
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* Coverage Heat Strip */
+        .coverage-strip {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            pointer-events: none;
+        }
+
+        .coverage-segment {
+            position: absolute;
+            right: 0;
+            width: 3px;
+        }
+
+        .coverage-segment.coverage-0 { background: transparent; }
+        .coverage-segment.coverage-1 { background: #f44336; }
+        .coverage-segment.coverage-2 { background: #ff9800; }
+        .coverage-segment.coverage-3 { background: #4caf50; }
+        .coverage-segment.coverage-4 { background: #00bcd4; }
+        .coverage-segment.coverage-5 { background: #9c27b0; }
+
+        /* Add Shift Button */
+        .add-shift-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            cursor: pointer;
+            z-index: 0;
+        }
+
+        .add-shift-area:hover::after {
+            content: '+';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--primary);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            pointer-events: none;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 450px;
+            width: 90%;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px rgba(233, 30, 99, 0.2);
+        }
+
+        .modal h2 {
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 0.875rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-cancel:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            color: white;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(233, 30, 99, 0.4);
+        }
+
+        /* Staff Summary Panel */
+        .staff-summary {
+            margin-top: 2rem;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+        }
+
+        .staff-summary h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .staff-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .staff-card {
+            background: var(--bg-dark);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .staff-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .staff-card h3 {
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .staff-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+        }
+
+        .staff-stat {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .staff-stat span:first-child {
+            color: var(--text-secondary);
+        }
+
+        .staff-stat.total {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .staff-stat.total span:last-child {
+            color: var(--success);
+        }
+
+        /* Responsive - Tablet */
+        @media (max-width: 1200px) {
+            .timeline-header,
+            .timeline-body {
+                grid-template-columns: 50px repeat(3, minmax(120px, 1fr));
+            }
+
+            .both-weeks-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .day-expanded-container {
+                grid-template-columns: 50px 1fr;
+            }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 768px) {
+            #main-app {
+                padding: 1rem;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            header h1 {
+                font-size: 1.35rem;
+            }
+
+            .filters-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .filter-group select {
+                flex: 1;
+            }
+
+            .legend {
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }
+
+            .coverage-indicator {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .day-navigation {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .nav-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.95rem;
+            }
+
+            .nav-info {
+                width: 100%;
+                text-align: center;
+                order: -1;
+                margin-bottom: 0.5rem;
+            }
+
+            /* Mobile: Show 1 day at a time */
+            .timeline-header,
+            .timeline-body {
+                grid-template-columns: 45px 1fr;
+            }
+
+            .timeline-header-cell {
+                padding: 0.75rem 0.25rem;
+            }
+
+            .day-name {
+                font-size: 0.7rem;
+            }
+
+            .day-date {
+                font-size: 1.1rem;
+            }
+
+            .day-label {
+                font-size: 0.6rem;
+            }
+
+            .time-slot {
+                font-size: 0.65rem;
+                height: 35px;
+            }
+
+            .shift-block {
+                padding: 3px 5px;
+                font-size: 0.7rem;
+            }
+
+            .shift-name {
+                font-size: 0.75rem;
+            }
+
+            .shift-time {
+                font-size: 0.65rem;
+            }
+
+            .shift-pay {
+                font-size: 0.6rem;
+            }
+
+            .shift-delete {
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+            }
+
+            .staff-summary {
+                padding: 1rem;
+            }
+
+            .staff-summary h2 {
+                font-size: 1.1rem;
+            }
+
+            .staff-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .staff-card {
+                padding: 0.75rem;
+            }
+
+            /* Modal adjustments */
+            .modal {
+                padding: 1.5rem;
+                width: 95%;
+            }
+
+            .modal h2 {
+                font-size: 1.1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            /* Staff filter view mobile */
+            .staff-filter-header {
+                flex-wrap: wrap;
+            }
+
+            .staff-filter-header h2 {
+                font-size: 1.2rem;
+            }
+
+            .staff-filter-header .staff-stats {
+                width: 100%;
+                text-align: left;
+                margin-top: 0.5rem;
+            }
+
+            /* Day expanded view mobile */
+            .day-expanded-header {
+                flex-wrap: wrap;
+            }
+
+            .day-expanded-header h2 {
+                font-size: 1.2rem;
+            }
+
+            .day-expanded-container {
+                grid-template-columns: 40px 1fr;
+            }
+
+            .expanded-time-slot {
+                height: 40px;
+                font-size: 0.7rem;
+            }
+
+            .expanded-shift-block {
+                padding: 5px 8px;
+            }
+
+            .expanded-shift-block .shift-name {
+                font-size: 0.75rem;
+            }
+
+            .expanded-shift-block .shift-time {
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Extra small mobile */
+        @media (max-width: 400px) {
+            header h1 {
+                font-size: 1.15rem;
+            }
+
+            .nav-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.85rem;
+            }
+
+            .time-column, .expanded-time-column {
+                min-width: 35px;
+            }
+
+            .timeline-header,
+            .timeline-body {
+                grid-template-columns: 35px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Password Gate -->
+    <div id="password-gate">
+        <div class="password-container">
+            <h1>CG Roster Tracker</h1>
+            <p>Enter password to access the roster</p>
+            <div class="password-input-group" id="password-group">
+                <input type="password" id="password-input" placeholder="Password" autofocus>
+            </div>
+            <button class="password-btn" onclick="checkPassword()">Enter</button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app">
+        <header>
+            <h1>CG Roster Tracker - April 2026</h1>
+            <div class="header-actions">
+                <div class="total-pay">
+                    <span>Total Pay:</span>
+                    <strong id="total-pay-amount">$0.00</strong>
+                </div>
+            </div>
+        </header>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <label>Staff:</label>
+                <select id="staff-filter" onchange="applyStaffFilter()">
+                    <option value="">All Staff</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Day:</label>
+                <select id="day-filter" onchange="applyDayFilter()">
+                    <option value="">All Days</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Zone:</label>
+                <select id="zone-filter" onchange="applyZoneFilter()">
+                    <option value="">All Zones</option>
+                </select>
+            </div>
+            <div id="active-filters"></div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot weekday"></div>
+                <span>Weekday</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot weekend"></div>
+                <span>Weekend</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot holiday"></div>
+                <span>Public Holiday</span>
+            </div>
+        </div>
+        <div class="legend zone-legend" id="zone-legend" style="display: none;">
+            <span style="font-weight: 600; margin-right: 0.5rem;">Zones:</span>
+        </div>
+
+        <!-- Staff Filter View -->
+        <div class="staff-filter-view" id="staff-filter-view">
+            <div class="staff-filter-header" id="staff-filter-header"></div>
+            <div class="both-weeks-grid" id="both-weeks-grid"></div>
+        </div>
+
+        <!-- Day Expanded View -->
+        <div class="day-expanded-view" id="day-expanded-view">
+            <div class="day-expanded-header" id="day-expanded-header"></div>
+            <div class="day-expanded-container" id="day-expanded-container"></div>
+        </div>
+
+        <!-- Normal Timeline View -->
+        <div class="timeline-view" id="timeline-view">
+            <div class="day-navigation">
+                <button class="nav-btn" id="prev-day-btn" onclick="navigateDays(-1)">← Prev</button>
+                <span class="nav-info" id="nav-info">Showing Apr 1-3</span>
+                <button class="nav-btn" id="next-day-btn" onclick="navigateDays(1)">Next →</button>
+            </div>
+
+            <div class="timeline-container">
+                <div class="timeline-header" id="timeline-header"></div>
+                <div class="timeline-body" id="timeline-body"></div>
+            </div>
+        </div>
+
+        <div class="staff-summary">
+            <h2>Staff Pay Summary</h2>
+            <div class="staff-grid" id="staff-summary-grid"></div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Shift Modal -->
+    <div class="modal-overlay" id="shift-modal">
+        <div class="modal">
+            <h2 id="modal-title">Add Shift</h2>
+            <form id="shift-form">
+                <div class="form-group">
+                    <label>Staff Member</label>
+                    <select id="shift-staff" required>
+                        <option value="">Select staff member</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="time" id="shift-start" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="time" id="shift-end" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Zone Assignment (optional)</label>
+                    <select id="shift-zone">
+                        <option value="">No Zone Assigned</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-save">Save Shift</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Password
+        const CORRECT_PASSWORD = 'haobaobao';
+
+        function checkPassword() {
+            const input = document.getElementById('password-input');
+            const group = document.getElementById('password-group');
+
+            if (input.value === CORRECT_PASSWORD) {
+                document.getElementById('password-gate').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                initializeApp();
+            } else {
+                group.classList.add('error');
+                input.value = '';
+                setTimeout(() => group.classList.remove('error'), 500);
+            }
+        }
+
+        document.getElementById('password-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        // Timeline settings
+        const START_HOUR = 8;
+        const END_HOUR = 20;
+        const HOUR_HEIGHT = 40; // Main view: 40px per hour
+        const SLOT_HEIGHT = 50; // Expanded view: 50px per 30-min slot (100px per hour)
+
+        // Zone Data with Colors
+        const zoneData = {
+            'Shelving 1': { color: '#2196F3', short: 'S1' },
+            'Shelving 2': { color: '#03A9F4', short: 'S2' },
+            'Shelving 3': { color: '#00BCD4', short: 'S3' },
+            'Counter': { color: '#FF9800', short: 'CTR' },
+            'Shower Install': { color: '#9C27B0', short: 'SHW' },
+            'Lip Oil Station': { color: '#E91E63', short: 'LIP' }
+        };
+
+        // Staff Data with Pay Rates - Pink themed colors
+        const staffData = {
+            'Melvin': { weekday: 25, weekend: 25, holiday: 50, color: '#e91e63' },
+            'Michelle': { weekday: 19.24, weekend: 26.93, holiday: 38.48, color: '#ff6090' },
+            'Jess': { weekday: 20, weekend: 28, holiday: 40, color: '#f48fb1' },
+            'Jordie': { weekday: 28, weekend: 42, holiday: 56, color: '#ce93d8' },
+            'Karley': { weekday: 19.91, weekend: 25.89, holiday: 39.83, color: '#ba68c8' },
+            'Hayda': { weekday: 16.6, weekend: 19.93, holiday: 33.2, color: '#9575cd' },
+            'Chanel': { weekday: 16.6, weekend: 19.93, holiday: 33.2, color: '#7986cb' },
+            'Kelly': { weekday: 20, weekend: 28, holiday: 40, color: '#64b5f6' },
+            'Allen': { weekday: 0, weekend: 0, holiday: 0, color: '#4dd0e1' },
+            'Leon': { weekday: 0, weekend: 0, holiday: 0, color: '#81c784' },
+            'Xixi': { weekday: 0, weekend: 0, holiday: 0, color: '#aed581' }
+        };
+
+        // April 2026 Calendar Data
+        const weeks = {
+            1: [
+                null,
+                null,
+                { date: 1, day: 'Wed', fullDay: 'Wednesday', type: 'weekday' },
+                { date: 2, day: 'Thu', fullDay: 'Thursday', type: 'weekday' },
+                { date: 3, day: 'Fri', fullDay: 'Friday', type: 'holiday', label: 'Good Friday' },
+                { date: 4, day: 'Sat', fullDay: 'Saturday', type: 'holiday', label: 'Easter Sat' },
+                { date: 5, day: 'Sun', fullDay: 'Sunday', type: 'holiday', label: 'Easter Sun' }
+            ],
+            2: [
+                { date: 6, day: 'Mon', fullDay: 'Monday', type: 'holiday', label: 'Easter Mon' },
+                { date: 7, day: 'Tue', fullDay: 'Tuesday', type: 'weekday' },
+                { date: 8, day: 'Wed', fullDay: 'Wednesday', type: 'weekday' },
+                { date: 9, day: 'Thu', fullDay: 'Thursday', type: 'weekday' },
+                { date: 10, day: 'Fri', fullDay: 'Friday', type: 'weekday' },
+                { date: 11, day: 'Sat', fullDay: 'Saturday', type: 'weekend' },
+                { date: 12, day: 'Sun', fullDay: 'Sunday', type: 'weekend' }
+            ],
+            3: [
+                { date: 13, day: 'Mon', fullDay: 'Monday', type: 'weekday' },
+                { date: 14, day: 'Tue', fullDay: 'Tuesday', type: 'weekday', label: 'Bump Out' }
+            ]
+        };
+
+        const allDays = [...weeks[1], ...weeks[2], ...weeks[3]].filter(d => d !== null);
+
+        // Initial roster data
+        let rosterData = {
+            1: [
+                { staff: 'Melvin', start: '12:00', end: '19:00' },
+                { staff: 'Allen', start: '09:00', end: '17:00' },
+                { staff: 'Leon', start: '09:00', end: '17:00' },
+                { staff: 'Xixi', start: '09:00', end: '17:00' }
+            ],
+            2: [
+                { staff: 'Melvin', start: '12:00', end: '19:00' },
+                { staff: 'Michelle', start: '09:00', end: '15:00' },
+                { staff: 'Jordie', start: '12:00', end: '18:00' },
+                { staff: 'Karley', start: '10:00', end: '16:00' },
+                { staff: 'Hayda', start: '10:00', end: '16:00' },
+                { staff: 'Xixi', start: '08:45', end: '17:00' },
+                { staff: 'Allen', start: '09:00', end: '19:00' }
+            ],
+            3: [
+                { staff: 'Melvin', start: '13:00', end: '19:30' },
+                { staff: 'Michelle', start: '09:00', end: '15:00' },
+                { staff: 'Jess', start: '13:00', end: '19:30' },
+                { staff: 'Karley', start: '10:00', end: '16:00' },
+                { staff: 'Hayda', start: '10:00', end: '17:00' },
+                { staff: 'Chanel', start: '10:00', end: '17:00' },
+                { staff: 'Xixi', start: '08:45', end: '17:00' },
+                { staff: 'Allen', start: '09:00', end: '19:30' }
+            ],
+            4: [
+                { staff: 'Melvin', start: '11:00', end: '19:30' },
+                { staff: 'Michelle', start: '11:00', end: '19:00' },
+                { staff: 'Jess', start: '13:00', end: '19:30' },
+                { staff: 'Karley', start: '10:00', end: '16:00' },
+                { staff: 'Hayda', start: '10:00', end: '17:00' },
+                { staff: 'Chanel', start: '11:00', end: '18:00' },
+                { staff: 'Xixi', start: '08:45', end: '17:00' },
+                { staff: 'Allen', start: '09:00', end: '19:30' }
+            ],
+            5: [
+                { staff: 'Melvin', start: '11:00', end: '19:30' },
+                { staff: 'Michelle', start: '11:00', end: '19:00' },
+                { staff: 'Jess', start: '13:00', end: '19:30' },
+                { staff: 'Karley', start: '10:00', end: '16:00' },
+                { staff: 'Hayda', start: '10:00', end: '17:00' },
+                { staff: 'Chanel', start: '11:00', end: '18:00' },
+                { staff: 'Xixi', start: '08:45', end: '17:00' },
+                { staff: 'Allen', start: '09:00', end: '19:30' }
+            ],
+            6: [
+                { staff: 'Melvin', start: '11:00', end: '19:30' },
+                { staff: 'Michelle', start: '11:00', end: '19:00' },
+                { staff: 'Jess', start: '13:00', end: '19:30' },
+                { staff: 'Hayda', start: '10:00', end: '17:00' },
+                { staff: 'Chanel', start: '10:00', end: '17:00' },
+                { staff: 'Xixi', start: '08:45', end: '17:00' },
+                { staff: 'Allen', start: '09:00', end: '19:30' }
+            ],
+            7: [
+                { staff: 'Melvin', start: '09:00', end: '15:00' },
+                { staff: 'Jordie', start: '12:00', end: '18:00' }
+            ],
+            8: [
+                { staff: 'Melvin', start: '12:00', end: '19:00' },
+                { staff: 'Michelle', start: '11:00', end: '18:00' },
+                { staff: 'Jordie', start: '12:00', end: '18:00' },
+                { staff: 'Chanel', start: '10:00', end: '17:00' }
+            ],
+            9: [
+                { staff: 'Michelle', start: '11:00', end: '18:00' },
+                { staff: 'Jordie', start: '12:00', end: '18:00' },
+                { staff: 'Hayda', start: '10:00', end: '17:00' },
+                { staff: 'Allen', start: '09:00', end: '19:00' }
+            ],
+            10: [
+                { staff: 'Melvin', start: '12:00', end: '19:00' },
+                { staff: 'Michelle', start: '11:00', end: '18:00' },
+                { staff: 'Jess', start: '13:00', end: '19:00' },
+                { staff: 'Jordie', start: '12:00', end: '18:00' },
+                { staff: 'Hayda', start: '10:00', end: '17:00' },
+                { staff: 'Chanel', start: '10:00', end: '17:00' },
+                { staff: 'Allen', start: '09:00', end: '19:00' }
+            ],
+            11: [
+                { staff: 'Melvin', start: '09:00', end: '15:00' },
+                { staff: 'Michelle', start: '11:00', end: '18:00' },
+                { staff: 'Jess', start: '13:00', end: '19:00' },
+                { staff: 'Jordie', start: '12:00', end: '19:00' },
+                { staff: 'Hayda', start: '10:00', end: '17:00' },
+                { staff: 'Chanel', start: '11:00', end: '18:00' },
+                { staff: 'Xixi', start: '11:00', end: '19:30' },
+                { staff: 'Allen', start: '09:00', end: '19:00' }
+            ],
+            12: [
+                { staff: 'Melvin', start: '09:00', end: '15:00' },
+                { staff: 'Michelle', start: '11:00', end: '19:00' },
+                { staff: 'Hayda', start: '10:00', end: '17:00' },
+                { staff: 'Chanel', start: '11:00', end: '18:00' },
+                { staff: 'Xixi', start: '11:00', end: '19:30' },
+                { staff: 'Allen', start: '09:00', end: '19:00' }
+            ],
+            13: [
+                { staff: 'Melvin', start: '12:00', end: '19:00' },
+                { staff: 'Jordie', start: '12:00', end: '18:00' }
+            ],
+            14: [
+                { staff: 'Melvin', start: '10:00', end: '18:00' },
+                { staff: 'Leon', start: '10:00', end: '18:00' }
+            ]
+        };
+
+        let currentStartDayIndex = 0; // Index into allDays array
+        let currentEditDate = null;
+        let currentEditIndex = null;
+        let draggedShift = null;
+        let draggedFromDate = null;
+        let draggedIndex = null;
+        let activeStaffFilter = null;
+        let activeDayFilter = null;
+        let activeZoneFilter = null;
+
+        function getDaysToShow() {
+            return window.innerWidth <= 768 ? 1 : 3;
+        }
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            if (!activeStaffFilter && !activeDayFilter) {
+                // Ensure current index is valid for new screen size
+                const maxIndex = allDays.length - getDaysToShow();
+                if (currentStartDayIndex > maxIndex) {
+                    currentStartDayIndex = Math.max(0, maxIndex);
+                }
+                renderTimeline();
+                setupDragAndDrop();
+            }
+        });
+
+        // Touch swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            if (activeStaffFilter || activeDayFilter) return;
+            touchEndX = e.changedTouches[0].screenX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) { // Minimum swipe distance
+                if (diff > 0) {
+                    navigateDays(1); // Swipe left = next
+                } else {
+                    navigateDays(-1); // Swipe right = prev
+                }
+            }
+        }, { passive: true });
+
+        function initializeApp() {
+            populateFilters();
+            populateStaffSelect();
+            renderTimeline();
+            setupDragAndDrop();
+            updatePaySummary();
+        }
+
+        function populateFilters() {
+            const staffSelect = document.getElementById('staff-filter');
+            staffSelect.innerHTML = '<option value="">All Staff</option>';
+            Object.keys(staffData).sort().forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                staffSelect.appendChild(option);
+            });
+
+            const daySelect = document.getElementById('day-filter');
+            daySelect.innerHTML = '<option value="">All Days</option>';
+            allDays.forEach(day => {
+                const option = document.createElement('option');
+                option.value = day.date;
+                option.textContent = `${day.fullDay} Apr ${day.date}${day.label ? ` (${day.label})` : ''}`;
+                daySelect.appendChild(option);
+            });
+
+            const zoneSelect = document.getElementById('zone-filter');
+            zoneSelect.innerHTML = '<option value="">All Zones</option>';
+            Object.keys(zoneData).forEach(zone => {
+                const option = document.createElement('option');
+                option.value = zone;
+                option.textContent = zone;
+                zoneSelect.appendChild(option);
+            });
+
+            // Populate zone legend
+            const zoneLegend = document.getElementById('zone-legend');
+            Object.entries(zoneData).forEach(([zone, data]) => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `<div class="legend-dot" style="background: ${data.color};"></div><span>${data.short}</span>`;
+                zoneLegend.appendChild(item);
+            });
+        }
+
+        function populateStaffSelect() {
+            const select = document.getElementById('shift-staff');
+            select.innerHTML = '<option value="">Select staff member</option>';
+            Object.keys(staffData).forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+
+            const zoneSelect = document.getElementById('shift-zone');
+            zoneSelect.innerHTML = '<option value="">No Zone Assigned</option>';
+            Object.keys(zoneData).forEach(zone => {
+                const option = document.createElement('option');
+                option.value = zone;
+                option.textContent = zone;
+                zoneSelect.appendChild(option);
+            });
+        }
+
+        function applyStaffFilter() {
+            const staffName = document.getElementById('staff-filter').value;
+            activeStaffFilter = staffName || null;
+            activeDayFilter = null;
+            document.getElementById('day-filter').value = '';
+            updateActiveFiltersDisplay();
+            if (activeStaffFilter) {
+                showStaffFilterView(activeStaffFilter);
+            } else {
+                showTimelineView();
+            }
+        }
+
+        function applyDayFilter() {
+            const dayDate = document.getElementById('day-filter').value;
+            activeDayFilter = dayDate ? parseInt(dayDate) : null;
+            activeStaffFilter = null;
+            document.getElementById('staff-filter').value = '';
+            updateActiveFiltersDisplay();
+            if (activeDayFilter) {
+                showDayExpandedView(activeDayFilter);
+            } else {
+                showTimelineView();
+            }
+        }
+
+        function applyZoneFilter() {
+            const zoneName = document.getElementById('zone-filter').value;
+            activeZoneFilter = zoneName || null;
+            updateActiveFiltersDisplay();
+            updateZoneLegendVisibility();
+            // Re-render the current view
+            if (activeDayFilter) {
+                renderDayExpandedView(activeDayFilter);
+            } else if (activeStaffFilter) {
+                renderStaffFilterView(activeStaffFilter);
+            } else {
+                renderTimeline();
+                setupDragAndDrop();
+            }
+        }
+
+        function updateZoneLegendVisibility() {
+            const zoneLegend = document.getElementById('zone-legend');
+            zoneLegend.style.display = activeZoneFilter ? 'flex' : 'none';
+        }
+
+        function clearFilters() {
+            activeStaffFilter = null;
+            activeDayFilter = null;
+            activeZoneFilter = null;
+            document.getElementById('staff-filter').value = '';
+            document.getElementById('day-filter').value = '';
+            document.getElementById('zone-filter').value = '';
+            updateActiveFiltersDisplay();
+            updateZoneLegendVisibility();
+            showTimelineView();
+        }
+
+        function updateActiveFiltersDisplay() {
+            const container = document.getElementById('active-filters');
+            container.innerHTML = '';
+            if (activeStaffFilter) {
+                const badge = document.createElement('span');
+                badge.className = 'active-filter-badge';
+                badge.innerHTML = `${activeStaffFilter} <button onclick="clearStaffFilter()">×</button>`;
+                container.appendChild(badge);
+            }
+            if (activeDayFilter) {
+                const day = allDays.find(d => d.date === activeDayFilter);
+                if (day) {
+                    const badge = document.createElement('span');
+                    badge.className = 'active-filter-badge';
+                    badge.innerHTML = `${day.fullDay} Apr ${day.date} <button onclick="clearDayFilter()">×</button>`;
+                    container.appendChild(badge);
+                }
+            }
+            if (activeZoneFilter) {
+                const zone = zoneData[activeZoneFilter];
+                const badge = document.createElement('span');
+                badge.className = 'active-filter-badge';
+                badge.style.background = zone.color;
+                badge.innerHTML = `Zone: ${activeZoneFilter} <button onclick="clearZoneFilter()">×</button>`;
+                container.appendChild(badge);
+            }
+        }
+
+        function clearStaffFilter() {
+            activeStaffFilter = null;
+            document.getElementById('staff-filter').value = '';
+            updateActiveFiltersDisplay();
+            showTimelineView();
+        }
+
+        function clearDayFilter() {
+            activeDayFilter = null;
+            document.getElementById('day-filter').value = '';
+            updateActiveFiltersDisplay();
+            showTimelineView();
+        }
+
+        function clearZoneFilter() {
+            activeZoneFilter = null;
+            document.getElementById('zone-filter').value = '';
+            updateActiveFiltersDisplay();
+            updateZoneLegendVisibility();
+            // Re-render current view
+            if (activeDayFilter) {
+                renderDayExpandedView(activeDayFilter);
+            } else if (activeStaffFilter) {
+                renderStaffFilterView(activeStaffFilter);
+            } else {
+                renderTimeline();
+                setupDragAndDrop();
+            }
+        }
+
+        function showTimelineView() {
+            document.getElementById('timeline-view').classList.remove('hidden');
+            document.getElementById('staff-filter-view').classList.remove('active');
+            document.getElementById('day-expanded-view').classList.remove('active');
+            renderTimeline();
+        }
+
+        function showStaffFilterView(staffName) {
+            document.getElementById('timeline-view').classList.add('hidden');
+            document.getElementById('day-expanded-view').classList.remove('active');
+            document.getElementById('staff-filter-view').classList.add('active');
+            renderStaffFilterView(staffName);
+        }
+
+        function showDayExpandedView(date) {
+            document.getElementById('timeline-view').classList.add('hidden');
+            document.getElementById('staff-filter-view').classList.remove('active');
+            document.getElementById('day-expanded-view').classList.add('active');
+            renderDayExpandedView(date);
+        }
+
+        function renderStaffFilterView(staffName) {
+            const staff = staffData[staffName];
+            const header = document.getElementById('staff-filter-header');
+
+            let totalHours = 0;
+            let totalPay = 0;
+            const staffShifts = { week1: [], week2: [] };
+
+            Object.entries(rosterData).forEach(([date, shifts]) => {
+                const d = parseInt(date);
+                const dayInfo = allDays.find(day => day.date === d);
+                if (!dayInfo) return;
+
+                shifts.forEach(shift => {
+                    if (shift.staff === staffName) {
+                        const hours = calculateHours(shift.start, shift.end);
+                        const pay = calculateShiftPay(shift, d);
+                        totalHours += hours;
+                        totalPay += pay;
+
+                        const shiftData = { ...shift, date: d, dayInfo, hours, pay };
+                        if (d <= 5) {
+                            staffShifts.week1.push(shiftData);
+                        } else {
+                            staffShifts.week2.push(shiftData);
+                        }
+                    }
+                });
+            });
+
+            header.innerHTML = `
+                <span class="staff-color-large" style="background: ${staff.color};"></span>
+                <h2>${staffName}'s Schedule</h2>
+                <div class="staff-stats">
+                    <div class="hours">${totalHours.toFixed(1)} hours total</div>
+                    <div class="pay">$${totalPay.toFixed(2)}</div>
+                </div>
+            `;
+
+            const grid = document.getElementById('both-weeks-grid');
+            grid.innerHTML = `
+                <div class="week-panel">
+                    <h3>Week 1 - Easter Week (Apr 1-5)</h3>
+                    <div class="staff-shifts-list">
+                        ${staffShifts.week1.length ? staffShifts.week1.map(s => renderStaffShiftItem(s, staff.color)).join('') : '<div class="no-shifts">No shifts this week</div>'}
+                    </div>
+                </div>
+                <div class="week-panel">
+                    <h3>Week 2 (Apr 6-12)</h3>
+                    <div class="staff-shifts-list">
+                        ${staffShifts.week2.length ? staffShifts.week2.map(s => renderStaffShiftItem(s, staff.color)).join('') : '<div class="no-shifts">No shifts this week</div>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStaffShiftItem(shift, color) {
+            const dayType = shift.dayInfo.type;
+            const rate = getPayRate(shift.staff, dayType);
+            return `
+                <div class="staff-shift-item ${dayType}" style="border-left-color: ${color};">
+                    <div class="day-info">
+                        <div class="day-name">${shift.dayInfo.fullDay}</div>
+                        <div class="day-date">Apr ${shift.date}</div>
+                    </div>
+                    <div class="shift-details">
+                        <div class="shift-time">${formatTime(shift.start)} - ${formatTime(shift.end)}</div>
+                        <div class="shift-meta">${shift.hours.toFixed(1)}h × $${rate.toFixed(2)}/hr${shift.dayInfo.label ? ` • ${shift.dayInfo.label}` : ''}</div>
+                    </div>
+                    <div class="shift-pay">${shift.pay > 0 ? `$${shift.pay.toFixed(0)}` : '-'}</div>
+                </div>
+            `;
+        }
+
+        function renderDayExpandedView(date) {
+            const dayInfo = allDays.find(d => d.date === date);
+            if (!dayInfo) return;
+
+            const shifts = rosterData[date] || [];
+            const dayType = dayInfo.type;
+            const totalHoursInDay = END_HOUR - START_HOUR;
+            const EXPANDED_HOUR_HEIGHT = SLOT_HEIGHT * 2; // 100px per hour
+
+            let totalShiftHours = 0;
+            let totalPay = 0;
+            shifts.forEach(shift => {
+                totalShiftHours += calculateHours(shift.start, shift.end);
+                totalPay += calculateShiftPay(shift, date);
+            });
+
+            const header = document.getElementById('day-expanded-header');
+            header.innerHTML = `
+                <h2>${dayInfo.fullDay}, April ${date}</h2>
+                <span class="day-type-badge ${dayType}">${dayInfo.label || (dayType === 'weekend' ? 'Weekend' : 'Weekday')}</span>
+                <div class="day-stats">
+                    <span>${shifts.length} staff • ${totalShiftHours.toFixed(1)} hours • $${totalPay.toFixed(0)}</span>
+                </div>
+            `;
+
+            // Calculate overlap groups - shifts that overlap in time get placed side by side
+            const sortedShifts = shifts.map((s, i) => ({...s, originalIndex: i}))
+                .sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+
+            // Assign columns to overlapping shifts
+            const columns = [];
+            sortedShifts.forEach(shift => {
+                const shiftStart = timeToMinutes(shift.start);
+                const shiftEnd = timeToMinutes(shift.end);
+
+                // Find first column where this shift doesn't overlap
+                let col = 0;
+                while (columns[col] && columns[col] > shiftStart) {
+                    col++;
+                }
+                shift.column = col;
+                columns[col] = shiftEnd;
+            });
+
+            const maxColumns = Math.max(...sortedShifts.map(s => s.column)) + 1;
+            const colWidthPercent = 96 / maxColumns;
+
+            const container = document.getElementById('day-expanded-container');
+            container.innerHTML = `
+                <div class="expanded-time-column">
+                    ${Array.from({length: totalHoursInDay * 2}, (_, i) => {
+                        const hour = START_HOUR + Math.floor(i / 2);
+                        const isHour = i % 2 === 0;
+                        const h12 = hour % 12 || 12;
+                        const ampm = hour >= 12 ? 'pm' : 'am';
+                        return `<div class="expanded-time-slot ${isHour ? 'hour' : ''}">${isHour ? h12 + ampm : ''}</div>`;
+                    }).join('')}
+                </div>
+                <div class="expanded-shifts-column" style="min-height: ${totalHoursInDay * EXPANDED_HOUR_HEIGHT}px;">
+                    ${Array.from({length: totalHoursInDay}, (_, i) => {
+                        return `<div class="expanded-grid-line" style="top: ${(i + 1) * EXPANDED_HOUR_HEIGHT}px;"></div>`;
+                    }).join('')}
+                    ${sortedShifts.map((shift) => {
+                        const staff = staffData[shift.staff] || { color: '#e91e63' };
+                        const hours = calculateHours(shift.start, shift.end);
+                        const pay = calculateShiftPay(shift, date);
+                        const rate = getPayRate(shift.staff, dayType);
+
+                        const startMinutes = timeToMinutes(shift.start);
+                        const endMinutes = timeToMinutes(shift.end);
+                        const top = ((startMinutes - START_HOUR * 60) / 60) * EXPANDED_HOUR_HEIGHT;
+                        const height = ((endMinutes - startMinutes) / 60) * EXPANDED_HOUR_HEIGHT;
+
+                        // Side-by-side columns for overlapping shifts
+                        const left = 2 + (shift.column * colWidthPercent);
+                        const width = colWidthPercent - 1;
+
+                        // Determine color based on zone filter
+                        let bgColor = staff.color;
+                        let zoneLabel = '';
+                        let dimmed = false;
+
+                        if (activeZoneFilter) {
+                            if (shift.zone === activeZoneFilter) {
+                                bgColor = zoneData[shift.zone].color;
+                                zoneLabel = zoneData[shift.zone].short;
+                            } else if (shift.zone) {
+                                bgColor = zoneData[shift.zone].color;
+                                zoneLabel = zoneData[shift.zone].short;
+                                dimmed = true;
+                            } else {
+                                dimmed = true;
+                            }
+                        } else if (shift.zone) {
+                            zoneLabel = zoneData[shift.zone].short;
+                        }
+
+                        return `
+                            <div class="expanded-shift-block ${dimmed ? 'dimmed' : ''}"
+                                 style="top: ${top}px; height: ${height}px; left: ${left}%; width: ${width}%; background: ${bgColor};"
+                                 ondblclick="openEditShiftModal(${date}, ${shift.originalIndex})">
+                                <div class="shift-name">${shift.staff}${zoneLabel ? ` <span class="zone-badge">${zoneLabel}</span>` : ''}</div>
+                                <div class="shift-time">${formatTime(shift.start)} - ${formatTime(shift.end)}</div>
+                                <div class="shift-pay">${hours.toFixed(1)}h${rate > 0 ? ` • $${pay.toFixed(0)}` : ''}${shift.zone ? ` • ${shift.zone}` : ''}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function navigateDays(direction) {
+            const daysToShow = getDaysToShow();
+            const newIndex = currentStartDayIndex + direction;
+            if (newIndex >= 0 && newIndex <= allDays.length - daysToShow) {
+                currentStartDayIndex = newIndex;
+                renderTimeline();
+                setupDragAndDrop();
+                updateNavButtons();
+            }
+        }
+
+        function updateNavButtons() {
+            const daysToShow = getDaysToShow();
+            const prevBtn = document.getElementById('prev-day-btn');
+            const nextBtn = document.getElementById('next-day-btn');
+            const navInfo = document.getElementById('nav-info');
+
+            prevBtn.disabled = currentStartDayIndex === 0;
+            nextBtn.disabled = currentStartDayIndex >= allDays.length - daysToShow;
+
+            const startDay = allDays[currentStartDayIndex];
+            const endDay = allDays[currentStartDayIndex + daysToShow - 1];
+
+            if (daysToShow === 1) {
+                navInfo.innerHTML = `<strong>${startDay.fullDay}, Apr ${startDay.date}</strong>${startDay.label ? ` (${startDay.label})` : ''}`;
+            } else {
+                navInfo.innerHTML = `Showing <strong>Apr ${startDay.date}</strong> - <strong>Apr ${endDay.date}</strong>`;
+            }
+        }
+
+        function getDayType(date) {
+            const dayInfo = allDays.find(d => d.date === date);
+            return dayInfo ? dayInfo.type : 'weekday';
+        }
+
+        function getPayRate(staffName, dayType) {
+            const staff = staffData[staffName];
+            if (!staff) return 0;
+            return staff[dayType] || staff.weekday;
+        }
+
+        function timeToMinutes(time) {
+            const [h, m] = time.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function calculateHours(start, end) {
+            return (timeToMinutes(end) - timeToMinutes(start)) / 60;
+        }
+
+        function calculateShiftPay(shift, date) {
+            const dayType = getDayType(date);
+            const rate = getPayRate(shift.staff, dayType);
+            const hours = calculateHours(shift.start, shift.end);
+            return hours * rate;
+        }
+
+        function formatTime(time) {
+            const [hours, minutes] = time.split(':');
+            const h = parseInt(hours);
+            const ampm = h >= 12 ? 'pm' : 'am';
+            const h12 = h % 12 || 12;
+            return `${h12}:${minutes}${ampm}`;
+        }
+
+        function getHourHeight() {
+            // Match CSS: 40px desktop, 35px mobile (based on time-slot height)
+            return window.innerWidth <= 768 ? 35 : HOUR_HEIGHT;
+        }
+
+        function getShiftPosition(shift) {
+            const hourHeight = getHourHeight();
+            const startMinutes = timeToMinutes(shift.start);
+            const endMinutes = timeToMinutes(shift.end);
+            const startOffset = (startMinutes - START_HOUR * 60) / 60;
+            const duration = (endMinutes - startMinutes) / 60;
+            return {
+                top: startOffset * hourHeight,
+                height: duration * hourHeight
+            };
+        }
+
+        function calculateCoverage(date) {
+            const shifts = rosterData[date] || [];
+            const coverage = {};
+            for (let m = START_HOUR * 60; m < END_HOUR * 60; m += 30) {
+                coverage[m] = 0;
+            }
+            shifts.forEach(shift => {
+                const start = timeToMinutes(shift.start);
+                const end = timeToMinutes(shift.end);
+                for (let m = Math.max(start, START_HOUR * 60); m < Math.min(end, END_HOUR * 60); m += 30) {
+                    coverage[m]++;
+                }
+            });
+            return coverage;
+        }
+
+        function renderTimeline() {
+            // Get the days to display (3 on desktop, 1 on mobile)
+            const daysToShow = getDaysToShow();
+            const visibleDays = allDays.slice(currentStartDayIndex, currentStartDayIndex + daysToShow);
+            const totalHours = END_HOUR - START_HOUR;
+
+            const header = document.getElementById('timeline-header');
+            header.innerHTML = `
+                <div class="timeline-header-cell time-col">Time</div>
+                ${visibleDays.map(day => {
+                    const typeClass = day.type === 'holiday' ? 'holiday' : (day.type === 'weekend' ? 'weekend' : '');
+                    return `
+                        <div class="timeline-header-cell ${typeClass}" onclick="selectDayFilter(${day.date})">
+                            <div class="day-name">${day.day}</div>
+                            <div class="day-date">${day.date}</div>
+                            <div class="day-label">${day.label || (day.type === 'weekend' ? 'Weekend' : '')}</div>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+
+            const body = document.getElementById('timeline-body');
+            body.innerHTML = `
+                <div class="time-column">
+                    ${Array.from({length: totalHours * 2}, (_, i) => {
+                        const hour = START_HOUR + Math.floor(i / 2);
+                        const isHour = i % 2 === 0;
+                        const h12 = hour % 12 || 12;
+                        const ampm = hour >= 12 ? 'pm' : 'am';
+                        return `<div class="time-slot ${isHour ? 'hour' : ''}">${isHour ? h12 + ampm : ''}</div>`;
+                    }).join('')}
+                </div>
+                ${visibleDays.map(day => {
+                    const typeClass = day.type === 'holiday' ? 'holiday' : (day.type === 'weekend' ? 'weekend' : '');
+                    return `
+                        <div class="day-column ${typeClass}" data-date="${day.date}">
+                            ${renderTimeGridLines()}
+                            <div class="add-shift-area" onclick="openAddShiftModal(${day.date}, event)"></div>
+                            ${renderShifts(day.date)}
+                            ${renderCoverageStrip(day.date)}
+                        </div>
+                    `;
+                }).join('')}
+            `;
+
+            updateNavButtons();
+        }
+
+        function selectDayFilter(date) {
+            document.getElementById('day-filter').value = date;
+            applyDayFilter();
+        }
+
+        function renderTimeGridLines() {
+            const totalHours = END_HOUR - START_HOUR;
+            return Array.from({length: totalHours}, (_, i) => {
+                return `<div class="time-grid-line" style="top: ${(i + 1) * HOUR_HEIGHT}px;"></div>`;
+            }).join('');
+        }
+
+        function renderShifts(date) {
+            const shifts = rosterData[date] || [];
+            const dayType = getDayType(date);
+            if (shifts.length === 0) return '';
+
+            // Calculate overlap groups - shifts that overlap in time get placed side by side
+            const sortedShifts = shifts.map((s, i) => ({...s, originalIndex: i}))
+                .sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+
+            // Assign columns to overlapping shifts
+            const columns = [];
+            sortedShifts.forEach(shift => {
+                const shiftStart = timeToMinutes(shift.start);
+                const shiftEnd = timeToMinutes(shift.end);
+
+                // Find first column where this shift doesn't overlap
+                let col = 0;
+                while (columns[col] && columns[col] > shiftStart) {
+                    col++;
+                }
+                shift.column = col;
+                columns[col] = shiftEnd;
+            });
+
+            const maxColumns = Math.max(...sortedShifts.map(s => s.column)) + 1;
+            const colWidth = 96 / maxColumns;
+
+            return sortedShifts.map((shift) => {
+                const staff = staffData[shift.staff] || { color: '#e91e63' };
+                const pos = getShiftPosition(shift);
+                const hours = calculateHours(shift.start, shift.end);
+                const pay = calculateShiftPay(shift, date);
+                const rate = getPayRate(shift.staff, dayType);
+
+                const left = 2 + (shift.column * colWidth);
+                const width = colWidth - 1;
+
+                // Determine color based on zone filter
+                let bgColor = staff.color;
+                let zoneLabel = '';
+                let dimmed = false;
+
+                if (activeZoneFilter) {
+                    if (shift.zone === activeZoneFilter) {
+                        bgColor = zoneData[shift.zone].color;
+                        zoneLabel = zoneData[shift.zone].short;
+                    } else if (shift.zone) {
+                        bgColor = zoneData[shift.zone].color;
+                        zoneLabel = zoneData[shift.zone].short;
+                        dimmed = true;
+                    } else {
+                        dimmed = true;
+                    }
+                } else if (shift.zone) {
+                    zoneLabel = zoneData[shift.zone].short;
+                }
+
+                return `
+                    <div class="shift-block ${dimmed ? 'dimmed' : ''}"
+                         draggable="true"
+                         data-date="${date}"
+                         data-index="${shift.originalIndex}"
+                         data-staff="${shift.staff}"
+                         data-zone="${shift.zone || ''}"
+                         style="top: ${pos.top}px; height: ${pos.height}px; left: ${left}%; width: ${width}%; background: ${bgColor};"
+                         ondblclick="openEditShiftModal(${date}, ${shift.originalIndex})"
+                         onclick="highlightStaff('${shift.staff}')">
+                        <button class="shift-delete" onclick="deleteShift(${date}, ${shift.originalIndex}); event.stopPropagation();">×</button>
+                        <div class="shift-name">${shift.staff}${zoneLabel ? ` <span class="zone-badge">${zoneLabel}</span>` : ''}</div>
+                        <div class="shift-time">${formatTime(shift.start)} - ${formatTime(shift.end)}</div>
+                        <div class="shift-pay">${hours.toFixed(1)}h</div>
+                        <div class="resize-handle" onmousedown="startResize(event, ${date}, ${shift.originalIndex})"></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function highlightStaff(staffName) {
+            document.querySelectorAll('.shift-block').forEach(block => {
+                if (block.dataset.staff === staffName) {
+                    block.classList.add('highlighted');
+                    block.classList.remove('dimmed');
+                } else {
+                    block.classList.add('dimmed');
+                    block.classList.remove('highlighted');
+                }
+            });
+            setTimeout(() => {
+                document.querySelectorAll('.shift-block').forEach(block => {
+                    block.classList.remove('highlighted', 'dimmed');
+                });
+            }, 2000);
+        }
+
+        function renderCoverageStrip(date) {
+            const coverage = calculateCoverage(date);
+            const hourHeight = getHourHeight();
+            return `<div class="coverage-strip">${Object.entries(coverage).map(([minutes, count]) => {
+                const m = parseInt(minutes);
+                const top = ((m - START_HOUR * 60) / 60) * hourHeight;
+                return `<div class="coverage-segment coverage-${Math.min(5, count)}" style="top: ${top}px; height: ${hourHeight / 2}px;"></div>`;
+            }).join('')}</div>`;
+        }
+
+        function setupDragAndDrop() {
+            document.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('shift-block')) {
+                    draggedShift = e.target;
+                    draggedFromDate = parseInt(e.target.dataset.date);
+                    draggedIndex = parseInt(e.target.dataset.index);
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                }
+            });
+            document.addEventListener('dragend', (e) => {
+                if (e.target.classList.contains('shift-block')) {
+                    e.target.classList.remove('dragging');
+                }
+            });
+            document.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const dropZone = e.target.closest('.day-column');
+                if (dropZone && dropZone.dataset.date) {
+                    e.dataTransfer.dropEffect = 'move';
+                }
+            });
+            document.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const dropZone = e.target.closest('.day-column');
+                if (dropZone && dropZone.dataset.date && draggedShift) {
+                    const toDate = parseInt(dropZone.dataset.date);
+                    const rect = dropZone.getBoundingClientRect();
+                    const y = e.clientY - rect.top;
+                    const hourHeight = getHourHeight();
+                    const minutesFromStart = Math.round((y / hourHeight) * 60 / 30) * 30;
+                    const newStartMinutes = START_HOUR * 60 + minutesFromStart;
+                    moveShift(draggedFromDate, draggedIndex, toDate, newStartMinutes);
+                }
+                draggedShift = null;
+            });
+        }
+
+        function moveShift(fromDate, index, toDate, newStartMinutes) {
+            const originalShift = rosterData[fromDate][index];
+            const shift = {
+                staff: originalShift.staff,
+                start: originalShift.start,
+                end: originalShift.end
+            };
+            if (originalShift.zone) shift.zone = originalShift.zone;
+
+            const duration = timeToMinutes(shift.end) - timeToMinutes(shift.start);
+            if (newStartMinutes !== undefined) {
+                const newStart = Math.max(START_HOUR * 60, Math.min(END_HOUR * 60 - 60, newStartMinutes));
+                const newEnd = Math.min(END_HOUR * 60, newStart + duration);
+                shift.start = `${Math.floor(newStart / 60).toString().padStart(2, '0')}:${(newStart % 60).toString().padStart(2, '0')}`;
+                shift.end = `${Math.floor(newEnd / 60).toString().padStart(2, '0')}:${(newEnd % 60).toString().padStart(2, '0')}`;
+            }
+            rosterData[fromDate].splice(index, 1);
+            if (!rosterData[toDate]) rosterData[toDate] = [];
+            rosterData[toDate].push(shift);
+            renderTimeline();
+            setupDragAndDrop();
+            updatePaySummary();
+        }
+
+        function deleteShift(date, index) {
+            rosterData[date].splice(index, 1);
+            renderTimeline();
+            setupDragAndDrop();
+            updatePaySummary();
+        }
+
+        let resizing = false;
+        let resizeData = null;
+
+        function startResize(e, date, index) {
+            e.preventDefault();
+            e.stopPropagation();
+            resizing = true;
+            resizeData = { date, index, startY: e.clientY, originalEnd: rosterData[date][index].end };
+            document.addEventListener('mousemove', handleResize);
+            document.addEventListener('mouseup', stopResize);
+        }
+
+        function handleResize(e) {
+            if (!resizing || !resizeData) return;
+            const deltaY = e.clientY - resizeData.startY;
+            const hourHeight = getHourHeight();
+            const deltaMinutes = Math.round((deltaY / hourHeight) * 60 / 15) * 15;
+            const shift = rosterData[resizeData.date][resizeData.index];
+            const origEndMinutes = timeToMinutes(resizeData.originalEnd);
+            const startMinutes = timeToMinutes(shift.start);
+            let newEndMinutes = Math.max(startMinutes + 30, Math.min(END_HOUR * 60, origEndMinutes + deltaMinutes));
+            shift.end = `${Math.floor(newEndMinutes / 60).toString().padStart(2, '0')}:${(newEndMinutes % 60).toString().padStart(2, '0')}`;
+            renderTimeline();
+            setupDragAndDrop();
+        }
+
+        function stopResize() {
+            resizing = false;
+            resizeData = null;
+            document.removeEventListener('mousemove', handleResize);
+            document.removeEventListener('mouseup', stopResize);
+            updatePaySummary();
+        }
+
+        function openAddShiftModal(date, event) {
+            if (event.target.closest('.shift-block')) return;
+            const column = event.target.closest('.day-column');
+            if (!column) return;
+            const rect = column.getBoundingClientRect();
+            const y = event.clientY - rect.top;
+            const hourHeight = getHourHeight();
+            const minutesFromStart = Math.round((y / hourHeight) * 60 / 30) * 30;
+            const startMinutes = START_HOUR * 60 + minutesFromStart;
+            const startH = Math.floor(startMinutes / 60);
+            const startM = startMinutes % 60;
+            currentEditDate = date;
+            currentEditIndex = null;
+            document.getElementById('modal-title').textContent = 'Add Shift';
+            document.getElementById('shift-staff').value = '';
+            document.getElementById('shift-start').value = `${startH.toString().padStart(2, '0')}:${startM.toString().padStart(2, '0')}`;
+            document.getElementById('shift-end').value = `${Math.min(END_HOUR, startH + 8).toString().padStart(2, '0')}:00`;
+            document.getElementById('shift-zone').value = '';
+            document.getElementById('shift-modal').classList.add('active');
+        }
+
+        function openEditShiftModal(date, index) {
+            currentEditDate = date;
+            currentEditIndex = index;
+            const shift = rosterData[date][index];
+            document.getElementById('modal-title').textContent = 'Edit Shift';
+            document.getElementById('shift-staff').value = shift.staff;
+            document.getElementById('shift-start').value = shift.start;
+            document.getElementById('shift-end').value = shift.end;
+            document.getElementById('shift-zone').value = shift.zone || '';
+            document.getElementById('shift-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('shift-modal').classList.remove('active');
+            currentEditDate = null;
+            currentEditIndex = null;
+        }
+
+        document.getElementById('shift-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const staff = document.getElementById('shift-staff').value;
+            const start = document.getElementById('shift-start').value;
+            const end = document.getElementById('shift-end').value;
+            const zone = document.getElementById('shift-zone').value;
+            if (!staff || !start || !end) return;
+            const shift = { staff, start, end };
+            if (zone) shift.zone = zone;
+            if (!rosterData[currentEditDate]) rosterData[currentEditDate] = [];
+            if (currentEditIndex !== null) {
+                rosterData[currentEditDate][currentEditIndex] = shift;
+            } else {
+                rosterData[currentEditDate].push(shift);
+            }
+            closeModal();
+            if (activeDayFilter) {
+                renderDayExpandedView(activeDayFilter);
+            } else if (activeStaffFilter) {
+                renderStaffFilterView(activeStaffFilter);
+            } else {
+                renderTimeline();
+                setupDragAndDrop();
+            }
+            updatePaySummary();
+        });
+
+        function updatePaySummary() {
+            const staffTotals = {};
+            Object.keys(staffData).forEach(name => {
+                staffTotals[name] = { weekdayHours: 0, weekendHours: 0, holidayHours: 0, weekdayPay: 0, weekendPay: 0, holidayPay: 0, color: staffData[name].color };
+            });
+            Object.entries(rosterData).forEach(([date, shifts]) => {
+                const dayType = getDayType(parseInt(date));
+                shifts.forEach(shift => {
+                    if (!staffTotals[shift.staff]) {
+                        staffTotals[shift.staff] = { weekdayHours: 0, weekendHours: 0, holidayHours: 0, weekdayPay: 0, weekendPay: 0, holidayPay: 0, color: '#e91e63' };
+                    }
+                    const hours = calculateHours(shift.start, shift.end);
+                    const pay = calculateShiftPay(shift, parseInt(date));
+                    if (dayType === 'holiday') {
+                        staffTotals[shift.staff].holidayHours += hours;
+                        staffTotals[shift.staff].holidayPay += pay;
+                    } else if (dayType === 'weekend') {
+                        staffTotals[shift.staff].weekendHours += hours;
+                        staffTotals[shift.staff].weekendPay += pay;
+                    } else {
+                        staffTotals[shift.staff].weekdayHours += hours;
+                        staffTotals[shift.staff].weekdayPay += pay;
+                    }
+                });
+            });
+            const grid = document.getElementById('staff-summary-grid');
+            grid.innerHTML = '';
+            let grandTotal = 0;
+            Object.entries(staffTotals)
+                .filter(([_, t]) => t.weekdayHours + t.weekendHours + t.holidayHours > 0)
+                .sort((a, b) => (b[1].weekdayPay + b[1].weekendPay + b[1].holidayPay) - (a[1].weekdayPay + a[1].weekendPay + a[1].holidayPay))
+                .forEach(([name, t]) => {
+                    const totalHours = t.weekdayHours + t.weekendHours + t.holidayHours;
+                    const totalPay = t.weekdayPay + t.weekendPay + t.holidayPay;
+                    grandTotal += totalPay;
+                    const card = document.createElement('div');
+                    card.className = 'staff-card';
+                    card.onclick = () => { document.getElementById('staff-filter').value = name; applyStaffFilter(); };
+                    card.innerHTML = `
+                        <h3><span class="staff-color" style="background: ${t.color};"></span>${name}</h3>
+                        ${t.weekdayHours > 0 ? `<div class="staff-stat"><span>Weekday</span><span>${t.weekdayHours.toFixed(1)}h · $${t.weekdayPay.toFixed(0)}</span></div>` : ''}
+                        ${t.weekendHours > 0 ? `<div class="staff-stat"><span>Weekend</span><span>${t.weekendHours.toFixed(1)}h · $${t.weekendPay.toFixed(0)}</span></div>` : ''}
+                        ${t.holidayHours > 0 ? `<div class="staff-stat"><span>Holiday</span><span>${t.holidayHours.toFixed(1)}h · $${t.holidayPay.toFixed(0)}</span></div>` : ''}
+                        <div class="staff-stat total"><span>Total: ${totalHours.toFixed(1)}h</span><span>$${totalPay.toFixed(2)}</span></div>
+                    `;
+                    grid.appendChild(card);
+                });
+            document.getElementById('total-pay-amount').textContent = `$${grandTotal.toFixed(2)}`;
+        }
+
+        document.getElementById('shift-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'shift-modal') closeModal();
+        });
+    </script>
+</body>
+</html>
