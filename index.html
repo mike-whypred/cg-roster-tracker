@@ -373,6 +373,16 @@
             background: rgba(194, 24, 91, 0.1);
         }
 
+        .week-header-cell.empty {
+            background: var(--bg-dark);
+            opacity: 0.5;
+        }
+
+        .week-day-column.empty {
+            background: var(--bg-dark);
+            opacity: 0.3;
+        }
+
         .week-header-cell .day-num {
             font-size: 1.1rem;
             font-weight: 700;
@@ -1937,11 +1947,25 @@
             const container = document.getElementById('week-overview-content');
             const totalHours = END_HOUR - START_HOUR;
 
-            // Define weeks
+            // Define weeks - always 7 days, with empty placeholders
+            const emptyDay = (dayNum) => ({ date: null, day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dayNum], empty: true });
+
             const weekGroups = [
-                { title: 'Week 1 - Easter Week (Apr 1-5)', days: weeks[1].filter(d => d !== null) },
-                { title: 'Week 2 (Apr 6-12)', days: weeks[2] },
-                { title: 'Week 3 (Apr 13-14)', days: weeks[3] }
+                {
+                    title: 'Week 1 - Easter Week (Mar 30 - Apr 5)',
+                    days: weeks[1].map((d, i) => d || emptyDay(i))
+                },
+                {
+                    title: 'Week 2 (Apr 6-12)',
+                    days: weeks[2]
+                },
+                {
+                    title: 'Week 3 (Apr 13-19)',
+                    days: [
+                        ...weeks[3],
+                        emptyDay(2), emptyDay(3), emptyDay(4), emptyDay(5), emptyDay(6)
+                    ].slice(0, 7)
+                }
             ];
 
             let html = '';
@@ -1951,10 +1975,17 @@
 
                 html += `<div class="week-row">
                     <div class="week-row-title">${week.title}</div>
-                    <div class="week-grid" style="grid-template-columns: 50px repeat(${week.days.length}, 1fr);">
+                    <div class="week-grid" style="grid-template-columns: 50px repeat(7, 1fr);">
                         <div class="week-grid-header">
                             <div class="week-header-cell time-col">Time</div>
                             ${week.days.map(day => {
+                                if (day.empty) {
+                                    return `<div class="week-header-cell empty">
+                                        <div class="day-num">-</div>
+                                        <div class="day-name">${day.day}</div>
+                                        <div class="day-label"></div>
+                                    </div>`;
+                                }
                                 const typeClass = day.type === 'holiday' ? 'holiday' : (day.type === 'weekend' ? 'weekend' : '');
                                 return `<div class="week-header-cell ${typeClass}">
                                     <div class="day-num">${day.date}</div>
@@ -1973,6 +2004,11 @@
                                 }).join('')}
                             </div>
                             ${week.days.map(day => {
+                                if (day.empty) {
+                                    return `<div class="week-day-column empty" style="height: ${totalHours * WEEK_HOUR_HEIGHT}px;">
+                                        ${renderWeekGridLines(totalHours)}
+                                    </div>`;
+                                }
                                 const typeClass = day.type === 'holiday' ? 'holiday' : (day.type === 'weekend' ? 'weekend' : '');
                                 return `<div class="week-day-column ${typeClass}" style="height: ${totalHours * WEEK_HOUR_HEIGHT}px;">
                                     ${renderWeekGridLines(totalHours)}
